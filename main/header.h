@@ -42,17 +42,17 @@ public:
 	{
 		switch pin
 			case 'r':
-			//startFade();
+				//startFade();
 	}
 
 private:
 	void startFade()
 	{
-	int k = 100 * int(rand(20, 26));
-	for (int i = 0; i < k; i++)
-	{
-		changeVal( int(rand(0,256)), 'r', int(rand(0, 256)), 'g', int(rand(0, 256)), 'b')
-	}
+		int k = 100 * int(rand(20, 26));
+		for (int i = 0; i < k; i++)
+		{
+			changeVal(int(rand(0, 256)), 'r', int(rand(0, 256)), 'g', int(rand(0, 256)), 'b')
+		}
 	}
 };
 
