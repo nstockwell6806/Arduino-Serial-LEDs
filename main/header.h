@@ -42,11 +42,18 @@ public:
 	{
 		switch pin
 			case 'r':
-
+			//startFade();
 	}
 
 private:
-	void 
+	void startFade()
+	{
+	int k = 100 * int(rand(20, 26));
+	for (int i = 0; i < k; i++)
+	{
+		changeVal( int(rand(0,256)), 'r', int(rand(0, 256)), 'g', int(rand(0, 256)), 'b')
+	}
+	}
 };
 
 void setPins(int channelIn, int pin1, int pin2, int pin3)                    //set pins on board to a certain channel in the array pins[][]
