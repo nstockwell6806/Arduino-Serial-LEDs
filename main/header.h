@@ -4,28 +4,29 @@ class LedString
 {
 
 public:
-	int channel, rVal, gVal, bVal;
+	int channel;
 	LedString(int channelTemp)                                      //constructor; channelTemp is the input channel
 	{
 		channel = channelTemp;                                        //permanently store channel
-		analogWrite(pins[channel][0], rVal = 15);
-		analogWrite(pins[channel][1], gVal = 15);
-		analogWrite(pins[channel][2], bVal = 15);
 	}
+	char nameChars = {'r', 'g', 'b'};				//useful for identifying names r,g,b by numbers 1,2,3
+	int colors[3][3] = {{pins[channel][0], 15, 15}, {pins[channel][1], 15, 15}, {pins[channel][2], 15, 15}};	//r=0, g=1, b=2 for first index, second index is pin #, val, target val
+	float changes[3] = {0, 0, 0};					//incriments
 	void changeVal(int val, char pin)                                                    //change value of one pin
 	{
-		switch (pin)
-		{
-		case 'r':
-			analogWrite(pins[channel][0], rVal = val);
-			break;
-		case 'g':
-			analogWrite(pins[channel][1], gVal = val);
-			break;
-		case 'b':
-			analogWrite(pins[channel][2], bVal = val);
-			break;
+		switch pin {
+			case 'r':
+				int q = 0;
+				break;
+			case 'g':
+				int q = 1;
+				break;
+			case 'b':
+				int q = 2;
+				break;
 		}
+		colors[q][1] = val;
+		analogWrite(colors[q][0], colors[q][2] = colors[q][1]);
 	}
 	void changeVal(int val1, char pin1, int val2, char pin2)                             //change value of two pins
 	{
@@ -38,20 +39,28 @@ public:
 		changeVal(val2, pin2);
 		changeVal(val3, pin3);
 	}
-	void fade(int val, char pin)
+	void fade()
 	{
-		switch pin
-			case 'r':
-				//startFade();
+		if(colors[0][1] == colors[0][2] && colors[1][1] == colors[1][2] && colors[2][1] == colors[2][2])		//if all values are at their targets, set new targets
+		{
+			startFade();
+		}
+		for(int i = 0; i < 3; i++)							//cycle through and fade pins one incriment if needed
+		{
+			if(colors[i][2] != colors[i][1])
+			{
+				changeVal(colors[i][1] + changes[i], nameChars[i]);
+			}
+		}
 	}
 
 private:
-	void startFade()
+	void startFade()							//calculate new targets and incriments
 	{
-		int k = 100 * int(rand(20, 26));
-		for (int i = 0; i < k; i++)
+		for(int i = 0; i < 3; i++)
 		{
-			changeVal(int(rand(0, 256)), 'r', int(rand(0, 256)), 'g', int(rand(0, 256)), 'b')
+			colors[i][2] = int(random(0,256));						//set random ints for targets
+			changes[i] = ( colors[i][2] - colors[i][1] ) / 256;				//set incriment value
 		}
 	}
 };
@@ -65,4 +74,3 @@ void setPins(int channelIn, int pin1, int pin2, int pin3)                    //s
 		pins[channelIn][i] = pinsIn[i];
 	}
 }
-
