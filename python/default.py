@@ -1,29 +1,40 @@
 import xbmc
 import time
- 
+import serial
+
 class XBMCPlayer(xbmc.Player):
     def __init__(self, *args):
         pass
  
     def onPlayBackStarted(self):
-        xbmc.log("Playback started - LED ON")
+        ledDim()
  
     def onPlayBackPaused(self):
-        xbmc.log("Playback paused - LED OFF")
+        ledFade()
  
     def onPlayBackResumed(self):
-        xbmc.log("Playback resumed - LED ON")
+        ledDim()
  
     def onPlayBackEnded(self):
-        xbmc.log("Playback ended - LED OFF")
+        ledFade()
  
     def onPlayBackStopped(self):
-        xbmc.log("Playback stopped - LED OFF")
+        ledFade()
  
 player = XBMCPlayer()
- 
 monitor = xbmc.Monitor()
+con = serial.Serial("", 9600)
+
+def ledDim()
+    con.write("d".encode('ASCII'))
+
+def ledFade()
+    con.write("f".encode('ASCII'))
+
+def ledOff()
+    con.write("o".encode('ASCII'))
  
 while True:
-    if monitor.waitForAbort(1): # Sleep/wait for abort for 1 second.
-        break # Abort was requested while waiting. Exit the while loop.
+    if monitor.waitForAbort(1):
+        ledOff()
+        break
