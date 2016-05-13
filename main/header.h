@@ -22,7 +22,7 @@ public:
 	{
 		channel = channelTemp;                                        												//permanently store channel
 	}
-	char pinNames = {'r', 'g', 'b'};																				//useful for identifying names r,g,b by numbers 1,2,3
+	char pinNames[3] = {'r', 'g', 'b'};																				//useful for identifying names r,g,b by numbers 1,2,3
 	int pinData[3][3] = {{pinMap[channel][0], 15, 15}, {pinMap[channel][1], 15, 15}, {pinMap[channel][2], 15, 15}};	//r=0, g=1, b=2 for first index, second index is pin #, val, target val 		MAKE SURE TO RUN setPins() FIRST!
 	float colorIncriment[3] = {0, 0, 0};																			//incriments
 	void changeVal(int val, char pin)                                                    							//change value of one pin
