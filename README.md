@@ -4,4 +4,4 @@ This is a simple header with a test implementation in an Arduino sketch to contr
 ## Upcoming features: ##
 - [x] Implementation of serial to control actions taken by the Arduino
 - [x] A [Kodi](https://kodi.tv) addon script to control the Arduino through serial
-- [ ] Greater Serial functionality
+- [ ] Greater serial functionality
