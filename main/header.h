@@ -38,8 +38,7 @@ public:
 				int q = 2;
 				break;
 		}
-		pinData[q][1] = val;
-		analogWrite(pinData[q][0], pinData[q][2] = pinData[q][1]);
+		analogWrite(pinData[q][0], pinData[q][1] = val);
 	}
 	void changeVal(int val1, char pin1, int val2, char pin2)                             							//change value of two pins
 	{
