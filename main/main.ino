@@ -7,5 +7,6 @@ LedString String1 (0);          //setup string 1 running on channel 0
 }
 
 void loop() {
-String1.fade();
+readSerial();					//read serial buffer & change mode
+runActions();					//run the corresponding mode
 }

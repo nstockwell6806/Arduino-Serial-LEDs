@@ -1,5 +1,9 @@
 #define totalChannelNum 1
 int pins[totalChannelNum][3];
+boolean fading = true;
+boolean shutdown =  false;
+boolean newInstructions = false;
+char serInput = -1;
 class LedString
 {
 
@@ -10,7 +14,7 @@ public:
 		channel = channelTemp;                                        											//permanently store channel
 	}
 	char nameChars = {'r', 'g', 'b'};																			//useful for identifying names r,g,b by numbers 1,2,3
-	int colors[3][3] = {{pins[channel][0], 15, 15}, {pins[channel][1], 15, 15}, {pins[channel][2], 15, 15}};	//r=0, g=1, b=2 for first index, second index is pin #, val, target val
+	int colors[3][3] = {{pins[channel][0], 15, 15}, {pins[channel][1], 15, 15}, {pins[channel][2], 15, 15}};	//r=0, g=1, b=2 for first index, second index is pin #, val, target val 		MAKE SURE TO RUN setPins() FIRST!
 	float changes[3] = {0, 0, 0};																				//incriments
 	void changeVal(int val, char pin)                                                    						//change value of one pin
 	{
@@ -63,6 +67,18 @@ public:
 		analogWrite(colors[1][0], colors[1][1]);
 		analogWrite(colors[1][0], colors[2][1]);
 	}
+	void shutDown()
+	{
+		digitalWrite(colors[0][0], LOW);
+		digitalWrite(colors[1][0], LOW);
+		digitalWrite(colors[2][0], LOW);
+	}
+	void dim()
+	{
+		analogWrite(colors[0][0], 15);
+		analogWrite(colors[1][0], 15);
+		analogWrite(colors[2][0], 15);		
+	}
 
 private:
 	void startFade()																							//calculate new targets and incriments
@@ -82,5 +98,51 @@ void setPins(int channelIn, int pin1, int pin2, int pin3)                    			
 	for (i = 0; i < 3; i++)
 	{
 		pins[channelIn][i] = pinsIn[i];
+	}
+}
+
+void readSerial()																								//read serial message if available
+{
+	if (Serial.available() > 0)
+	{
+		serInput = Serial.read();
+		switch (serInput)
+		{
+			case "f":
+				fading = true;
+				newInstructions = true;
+				break;
+			case "d":
+				fading = false;
+				shutdown = false;
+				newInstructions = true;
+				break;
+			case "o":
+				fading = false;
+				shutdown = true;
+				newInstructions = true;
+				break;
+			default:
+				fading = true;
+				newInstructions = true;
+				break;
+
+		}
+	}
+}
+
+void runActions()
+{
+	if(fading)
+	{
+		String1.fade();
+	}
+	else if(shutdown && newInstructions)																		//only run if there are new instructions
+	{
+		String1.shutdown();
+	}
+	else if(not(shutdown) && newInstructions)																	//only run if there are new instructions
+	{
+		String1.dim();
 	}
 }
