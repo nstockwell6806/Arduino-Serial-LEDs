@@ -23,15 +23,18 @@ class XBMCPlayer(xbmc.Player):
  
 player = XBMCPlayer()
 monitor = xbmc.Monitor()
-con = serial.Serial("", 9600)
+serial_connect = xbmcaddon.Addon()
+arduino_port = serial_connect.getSetting('serial_port')
+con = serial.Serial(arduino_port, 9600)
 
-def ledDim()
-    con.write("d".encode('ASCII'))
+def ledDim():
+    if player.isPlayingVideo(self):
+        con.write("d".encode('ASCII'))
 
-def ledFade()
+def ledFade():
     con.write("f".encode('ASCII'))
 
-def ledOff()
+def ledOff():
     con.write("o".encode('ASCII'))
  
 while True:

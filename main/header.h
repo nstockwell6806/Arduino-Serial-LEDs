@@ -1,22 +1,31 @@
 #define totalChannelNum 1
-int pins[totalChannelNum][3];
+
+
+
+
+
+int pinMap[totalChannelNum][3];
+char serialInput = -1;
 boolean fading = true;
 boolean shutdown =  false;
 boolean newInstructions = false;
-char serInput = -1;
+
+
+
+
+
 class LedString
 {
-
 public:
 	int channel;
-	LedString(int channelTemp)                                      											//constructor; channelTemp is the input channel
+	LedString(int channelTemp)                                      												//constructor; channelTemp is the input channel
 	{
-		channel = channelTemp;                                        											//permanently store channel
+		channel = channelTemp;                                        												//permanently store channel
 	}
-	char nameChars = {'r', 'g', 'b'};																			//useful for identifying names r,g,b by numbers 1,2,3
-	int colors[3][3] = {{pins[channel][0], 15, 15}, {pins[channel][1], 15, 15}, {pins[channel][2], 15, 15}};	//r=0, g=1, b=2 for first index, second index is pin #, val, target val 		MAKE SURE TO RUN setPins() FIRST!
-	float changes[3] = {0, 0, 0};																				//incriments
-	void changeVal(int val, char pin)                                                    						//change value of one pin
+	char pinNames = {'r', 'g', 'b'};																				//useful for identifying names r,g,b by numbers 1,2,3
+	int pinData[3][3] = {{pinMap[channel][0], 15, 15}, {pinMap[channel][1], 15, 15}, {pinMap[channel][2], 15, 15}};	//r=0, g=1, b=2 for first index, second index is pin #, val, target val 		MAKE SURE TO RUN setPins() FIRST!
+	float colorIncriment[3] = {0, 0, 0};																			//incriments
+	void changeVal(int val, char pin)                                                    							//change value of one pin
 	{
 		switch pin {
 			case 'r':
@@ -29,15 +38,15 @@ public:
 				int q = 2;
 				break;
 		}
-		colors[q][1] = val;
-		analogWrite(colors[q][0], colors[q][2] = colors[q][1]);
+		pinData[q][1] = val;
+		analogWrite(pinData[q][0], pinData[q][2] = pinData[q][1]);
 	}
-	void changeVal(int val1, char pin1, int val2, char pin2)                             						//change value of two pins
+	void changeVal(int val1, char pin1, int val2, char pin2)                             							//change value of two pins
 	{
 		changeVal(val1, pin1);
 		changeVal(val2, pin2);
 	}
-	void changeVal(int val1, char pin1, int val2, char pin2, int val3, char pin3)        						//change value of three pins
+	void changeVal(int val1, char pin1, int val2, char pin2, int val3, char pin3)        							//change value of three pins
 	{
 		changeVal(val1, pin1);
 		changeVal(val2, pin2);
@@ -45,39 +54,31 @@ public:
 	}
 	void fade()
 	{
-		if(colors[0][1] == colors[0][2] && colors[1][1] == colors[1][2] && colors[2][1] == colors[2][2])		//if all values are at their targets, set new targets
+		if(pinData[0][1] == pinData[0][2] && pinData[1][1] == pinData[1][2] && pinData[2][1] == pinData[2][2])		//if all values are at their targets, set new targets
 		{
 			startFade();
 		}
-		for(int i = 0; i < 3; i++)																				//cycle through and fade pins one incriment if needed
+		for(int i = 0; i < 3; i++)																					//cycle through and fade pins one incriment if needed
 		{
-			if(colors[i][2] != colors[i][1])
+			if(pinData[i][2] != pinData[i][1])
 			{
-				changeVal(colors[i][1] + changes[i], nameChars[i]);
+				changeVal(pinData[i][1] + colorIncriment[i], pinNames[i]);
 			}
 		}
 	}
 	void flash(int r, int g, int b)
 	{
-		analogWrite(colors[0][0], r);
-		analogWrite(colors[1][0], g);
-		analogWrite(colors[2][0], b);
+		changeVal(r, 'r', g, 'g', b, 'b');
 		delay(10);
-		analogWrite(colors[0][0], colors[0][1]);
-		analogWrite(colors[1][0], colors[1][1]);
-		analogWrite(colors[1][0], colors[2][1]);
+		changeVal(pinData[0][1], 'r', pinData[1][1], 'g', pinData[2][1], 'b');
 	}
 	void shutDown()
 	{
-		digitalWrite(colors[0][0], LOW);
-		digitalWrite(colors[1][0], LOW);
-		digitalWrite(colors[2][0], LOW);
+		changeVal(0, 'r', 0, 'g', 0, 'b');
 	}
 	void dim()
 	{
-		analogWrite(colors[0][0], 15);
-		analogWrite(colors[1][0], 15);
-		analogWrite(colors[2][0], 15);		
+		changeVal(15, 'r', 15, 'g', 15, 'b');	
 	}
 
 private:
@@ -85,19 +86,22 @@ private:
 	{
 		for(int i = 0; i < 3; i++)
 		{
-			colors[i][2] = int(random(0,256));																	//set random ints for targets
-			changes[i] = ( colors[i][2] - colors[i][1] ) / 256;													//set incriment value
+			pinData[i][2] = int(random(0,256));																	//set random ints for targets
+			colorIncriment[i] = ( pinData[i][2] - pinData[i][1] ) / 256;										//set incriment value
 		}
 	}
-};
+}
+
+
+
+
 
 void setPins(int channelIn, int pin1, int pin2, int pin3)                    									//set pins on board to a certain channel in the array pins[][]
 {
 	int pinsIn[3] = { pin1, pin2, pin3 };
-	int i;
-	for (i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
-		pins[channelIn][i] = pinsIn[i];
+		pinMap[channelIn][i] = pinsIn[i];
 	}
 }
 
@@ -105,8 +109,8 @@ void readSerial()																								//read serial message if available
 {
 	if (Serial.available() > 0)
 	{
-		serInput = Serial.read();
-		switch (serInput)
+		serialInput = Serial.read();
+		switch (serialInput)
 		{
 			case "f":
 				fading = true;
@@ -131,7 +135,7 @@ void readSerial()																								//read serial message if available
 	}
 }
 
-void runActions()
+void runInstructions()
 {
 	if(fading)
 	{
