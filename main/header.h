@@ -3,6 +3,7 @@ boolean forceUpdate = false;                                          //force fa
 boolean shutDown =  true;                                             //mode setting for when not fading whether to dim or shutdown
 boolean runFlash = false;
 boolean newInstructions = false;                                      //lets functions know whether there are new instructions for pins
+int intensity = 100;
 
 
 
@@ -140,7 +141,7 @@ class LedString
       {
         do
         {
-          pinData[i][2] = 10 * random(0, 26);																	//set random targets
+          pinData[i][2] = 10 * random(0, (intensity/4)+1);																	//set random targets
         }
         while (pinData[i][2] == pinData[i][1]);
         colorIncriment[i] = ( pinData[i][2] - pinData[i][1] );										//set incriment value
@@ -177,6 +178,14 @@ void readSerial()																								//read serial message if available
       case 'u':                                                 //force recalculation of fade
         forceUpdate = true;
         break;
+        case 'i':                                               //change color intensity
+          if(intensity == 10)
+          {
+            intensity = 110;
+          }
+          intensity -= 10;
+          Serial.println(intensity);
+          forceUpdate = true;
       default:                                                  //if unknown character, start fade
         fading = true;
         break;
