@@ -1,15 +1,8 @@
-
-
-
-
-
-boolean fading = false;
-boolean shutDown =  true;
-boolean newInstructions = false;
-
-
-
-
+boolean fading = false;                                               //mode setting for fading
+boolean forceUpdate = false;                                          //force fade recalculation when true
+boolean shutDown =  true;                                             //mode setting for when not fading whether to dim or shutdown
+boolean runFlash = false;
+boolean newInstructions = false;                                      //lets functions know whether there are new instructions for pins
 
 
 
@@ -59,11 +52,16 @@ class LedString
       changeVal(val2, pin2);
       changeVal(val3, pin3);
     }
-    void fade()
+
+    void fade()                                                   //fade to random colors
     {
-      if (not(hasSameSign(pinData[0][2] - pinData[0][1], colorIncriment[0])) && not(hasSameSign(pinData[1][2] - pinData[1][1], colorIncriment[1])) && not(hasSameSign(pinData[2][2] - pinData[2][1], colorIncriment[2])))		//if all values are at or beyond their targets, set new targets
+      if ((not(hasSameSign(pinData[0][2] - pinData[0][1], colorIncriment[0])) && not(hasSameSign(pinData[1][2] - pinData[1][1], colorIncriment[1])) && not(hasSameSign(pinData[2][2] - pinData[2][1], colorIncriment[2]))) || forceUpdate)		//if all values are at or beyond their targets, set new targets
       {
         startFade();
+        if (forceUpdate)
+        {
+          forceUpdate = false;
+        }
       }
       for (int i = 0; i < 3; i++)																					//cycle through and fade pins one incriment if needed
       {
@@ -73,19 +71,23 @@ class LedString
         }
       }
     }
-    void flash(int r, int g, int b)
+
+    void flash(int r, int g, int b)                             //flash a certain rgb color for 250 milliseconds and return to the normal values
     {
+      int tempStorage[3] = {pinData[0][1], pinData[1][1], pinData[2][1]};
       changeVal(r, 'r', g, 'g', b, 'b');
-      delay(10);
-      changeVal(pinData[0][1], 'r', pinData[1][1], 'g', pinData[2][1], 'b');
+      delay(250);
+      changeVal(tempStorage[0], 'r', tempStorage[1], 'g', tempStorage[2], 'b');
     }
-    void shutDown()
+
+    void shutDown()                                             //turn the LEDs off
     {
       changeVal(0, 'r', 0, 'g', 0, 'b');
     }
-    void dim()
+
+    void dim()                                                  //dim the LEDs to r=10, g=0, b=0
     {
-      while (pinData[0][1] < 9 || pinData[0][1] > 11 || pinData[1][1] > 0 || pinData[2][1] > 0)
+      while (pinData[0][1] < 9 || pinData[0][1] > 11 || pinData[1][1] > 0 || pinData[2][1] > 0)       //cycle through the pins (quickly) to reduce values
       {
         if (pinData[0][1] > 11)
         {
@@ -93,7 +95,7 @@ class LedString
         }
         else if (pinData[0][1] < 9)
         {
-          changeVal(pinData[0][1] + 1, 'r');
+          changeVal(pinData[0][1] + 1, 'r');                                                          //if red is below the target, increase red
         }
         if (pinData[1][1] > 0)
         {
@@ -108,7 +110,7 @@ class LedString
     }
 
   private:
-    bool hasSameSign(float a, float b)
+    bool hasSameSign(float a, float b)                        //Check to see if the values are in the target range. Not ideal but useful
     {
       if (a == b)
       {
@@ -131,13 +133,14 @@ class LedString
         return false;
       }
     }
+
     void startFade()																							//calculate new targets and incriments
     {
       for (int i = 0; i < 3; i++)
       {
         do
         {
-          pinData[i][2] = 10 * random(0, 26);																	//set random ints for targets
+          pinData[i][2] = 10 * random(0, 26);																	//set random targets
         }
         while (pinData[i][2] == pinData[i][1]);
         colorIncriment[i] = ( pinData[i][2] - pinData[i][1] );										//set incriment value
@@ -149,34 +152,33 @@ class LedString
 
 
 
-
 void readSerial()																								//read serial message if available
 {
   if (Serial.available() > 0)
   {
     char receivedChar = Serial.read();
-    //    Serial.print("New serial read with returned char: ");
-    //    Serial.print(receivedChar);
-    //    Serial.print("\n");
     newInstructions = true;
     switch (receivedChar)
     {
-      case 'f':
+      case 'f':                                                 //fade
         fading = true;
-        //        Serial.println("Setting string to fade");
         break;
-      case 'd':
+      case 'd':                                                 //dim
         fading = false;
         shutDown = false;
         break;
-      case 'o':
+      case 'o':                                                 //shutdown: o for off
         fading = false;
         shutDown = true;
-        //        Serial.println("Setting string to off");
         break;
-      default:
+      case 'l':                                                 //flash
+        runFlash = true;
+        break;
+      case 'u':                                                 //force recalculation of fade
+        forceUpdate = true;
+        break;
+      default:                                                  //if unknown character, start fade
         fading = true;
-        //        Serial.println("Setting string to fade");
         break;
 
     }

@@ -1,5 +1,5 @@
 #include "header.h"
-LedString String1 (0, 7, 8, 9);          //setup string 1 running on channel 0
+LedString mainString (0, 7, 8, 9);          //setup main string running on channel 0
 
 
 void setup() {
@@ -19,21 +19,24 @@ void loop() {
 
 void runInstructions()
 {
+  if (runFlash)
+  {
+    mainString.flash(255, 255, 255);
+    runFlash = false;
+    newInstructions = true;
+  }
   if (fading)
   {
-    String1.fade();
-
+    mainString.fade();
   }
-  else if (shutDown && newInstructions)                                  //only run shutdown if there are new instructions
+  else if (shutDown && newInstructions)                                  //only run shutdown if not already shutdown
   {
-    String1.shutDown();
-//    Serial.println("Shutting down string 1");
+    mainString.shutDown();
     newInstructions = false;
   }
-  else if (not(shutDown) && newInstructions)                             //only run dim if there are new instructions
+  else if (not(shutDown) && newInstructions)                             //only run dim if not already dimmed
   {
-    String1.dim();
-//    Serial.println("Setting string to dim");
+    mainString.dim();
     newInstructions = false;
   }
 }
