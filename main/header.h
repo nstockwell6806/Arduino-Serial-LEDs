@@ -72,21 +72,6 @@ class LedString
           changeVal(pinData[i][1] + colorIncriment[i], pinNames[i]);
         }
       }
-      if (pinData[0][1] > 255 || pinData[0][1] < 0 || pinData[1][1] > 255 || pinData[1][1] < 0 || pinData[2][1] > 255 || pinData[2][1] < 0)
-      {
-        Serial.print(pinData[0][1]);
-        Serial.print(" ");
-        Serial.print(colorIncriment[0]);
-        Serial.print("\n");
-        Serial.print(pinData[1][1]);
-        Serial.print(" ");
-        Serial.print(colorIncriment[1]);
-        Serial.print("\n");
-        Serial.print(pinData[2][1]);
-        Serial.print(" ");
-        Serial.print(colorIncriment[2]);
-        delay(10000);
-      }
     }
     void flash(int r, int g, int b)
     {
@@ -100,7 +85,26 @@ class LedString
     }
     void dim()
     {
-      changeVal(15, 'r', 15, 'g', 15, 'b');
+      while (pinData[0][1] < 9 || pinData[0][1] > 11 || pinData[1][1] > 0 || pinData[2][1] > 0)
+      {
+        if (pinData[0][1] > 11)
+        {
+          changeVal(pinData[0][1] - 1, 'r');
+        }
+        else if (pinData[0][1] < 9)
+        {
+          changeVal(pinData[0][1] + 1, 'r');
+        }
+        if (pinData[1][1] > 0)
+        {
+          changeVal(pinData[1][1] - 1, 'g');
+        }
+        if (pinData[2][1] > 0)
+        {
+          changeVal(pinData[2][1] - 1, 'b');
+        }
+        delay(5);
+      }
     }
 
   private:
@@ -129,7 +133,6 @@ class LedString
     }
     void startFade()																							//calculate new targets and incriments
     {
-      Serial.println("New fade requested");
       for (int i = 0; i < 3; i++)
       {
         do
@@ -140,7 +143,6 @@ class LedString
         colorIncriment[i] = ( pinData[i][2] - pinData[i][1] );										//set incriment value
         colorIncriment[i] /= 100;
       }
-      Serial.println("New fade generated");
       fading = true;
     }
 };
@@ -153,15 +155,15 @@ void readSerial()																								//read serial message if available
   if (Serial.available() > 0)
   {
     char receivedChar = Serial.read();
-    Serial.print("New serial read with returned char: ");
-    Serial.print(receivedChar);
-    Serial.print("\n");
+    //    Serial.print("New serial read with returned char: ");
+    //    Serial.print(receivedChar);
+    //    Serial.print("\n");
     newInstructions = true;
     switch (receivedChar)
     {
       case 'f':
         fading = true;
-        Serial.println("Setting string to fade");
+        //        Serial.println("Setting string to fade");
         break;
       case 'd':
         fading = false;
@@ -170,11 +172,11 @@ void readSerial()																								//read serial message if available
       case 'o':
         fading = false;
         shutDown = true;
-        Serial.println("Setting string to off");
+        //        Serial.println("Setting string to off");
         break;
       default:
         fading = true;
-        Serial.println("Setting string to fade");
+        //        Serial.println("Setting string to fade");
         break;
 
     }
