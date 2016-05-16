@@ -121,7 +121,7 @@ class LedString
       {
         return false;                                         //special case also
       }
-      if (a > 0 && b > 0)
+      if (a >= 0 && b >= 0)
       {
         return true;
       }
