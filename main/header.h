@@ -1,14 +1,13 @@
-#define totalChannelNum 1
 
 
 
 
 
-int pinMap[totalChannelNum][3];
-char serialInput = -1;
-boolean fading = true;
-boolean shutdown =  false;
+boolean fading = false;
+boolean shutDown =  true;
 boolean newInstructions = false;
+
+
 
 
 
@@ -16,136 +15,168 @@ boolean newInstructions = false;
 
 class LedString
 {
-public:
-	int channel;
-	LedString(int channelTemp)                                      												//constructor; channelTemp is the input channel
-	{
-		channel = channelTemp;                                        												//permanently store channel
-	}
-	char pinNames[3] = {'r', 'g', 'b'};																				//useful for identifying names r,g,b by numbers 1,2,3
-	int pinData[3][3] = {{pinMap[channel][0], 15, 15}, {pinMap[channel][1], 15, 15}, {pinMap[channel][2], 15, 15}};	//r=0, g=1, b=2 for first index, second index is pin #, val, target val 		MAKE SURE TO RUN setPins() FIRST!
-	float colorIncriment[3] = {0, 0, 0};																			//incriments
-	void changeVal(int val, char pin)                                                    							//change value of one pin
-	{
-		switch pin {
-			case 'r':
-				int q = 0;
-				break;
-			case 'g':
-				int q = 1;
-				break;
-			case 'b':
-				int q = 2;
-				break;
-		}
-		analogWrite(pinData[q][0], pinData[q][1] = val);
-	}
-	void changeVal(int val1, char pin1, int val2, char pin2)                             							//change value of two pins
-	{
-		changeVal(val1, pin1);
-		changeVal(val2, pin2);
-	}
-	void changeVal(int val1, char pin1, int val2, char pin2, int val3, char pin3)        							//change value of three pins
-	{
-		changeVal(val1, pin1);
-		changeVal(val2, pin2);
-		changeVal(val3, pin3);
-	}
-	void fade()
-	{
-		if(pinData[0][1] == pinData[0][2] && pinData[1][1] == pinData[1][2] && pinData[2][1] == pinData[2][2])		//if all values are at their targets, set new targets
-		{
-			startFade();
-		}
-		for(int i = 0; i < 3; i++)																					//cycle through and fade pins one incriment if needed
-		{
-			if(pinData[i][2] != pinData[i][1])
-			{
-				changeVal(pinData[i][1] + colorIncriment[i], pinNames[i]);
-			}
-		}
-	}
-	void flash(int r, int g, int b)
-	{
-		changeVal(r, 'r', g, 'g', b, 'b');
-		delay(10);
-		changeVal(pinData[0][1], 'r', pinData[1][1], 'g', pinData[2][1], 'b');
-	}
-	void shutDown()
-	{
-		changeVal(0, 'r', 0, 'g', 0, 'b');
-	}
-	void dim()
-	{
-		changeVal(15, 'r', 15, 'g', 15, 'b');	
-	}
-
-private:
-	void startFade()																							//calculate new targets and incriments
-	{
-		for(int i = 0; i < 3; i++)
-		{
-			pinData[i][2] = int(random(0,256));																	//set random ints for targets
-			colorIncriment[i] = ( pinData[i][2] - pinData[i][1] ) / 256;										//set incriment value
-		}
-	}
-}
+  public:
+    int channel;
+    char pinNames[3] = {'r', 'g', 'b'};																				              //useful for identifying names r,g,b by numbers 1,2,3
+    float colorIncriment[3] = {1, 1, 1};																			              //incriments
+    float pinData[3][3] = {{ -1, 15, 20}, { -1, 15, 20}, { -1 , 15, 20}};                   //r=0, g=1, b=2 for first index, second index is pin #, val, target val
+    LedString(int channelTemp, int r, int b, int g)                                      		//constructor; channelTemp is the input channel; r, g, and b are pin values
+    {
+      channel = channelTemp;                                        												//permanently store channel
+      pinData[0][0] = r;
+      pinData[1][0] = g;
+      pinData[2][0] = b;
+    }
 
 
+    void changeVal(float val, char pin)                                                    							//change value of one pin
+    {
+      int pinAssociation;
+      switch (pin) {
+        case 'r':
+          pinAssociation = 0;
+          break;
+        case 'g':
+          pinAssociation = 1;
+          break;
+        case 'b':
+          pinAssociation = 2;
+          break;
+        default:
+          break;
+      }
+      pinData[pinAssociation][1] = val;
+      analogWrite(pinData[pinAssociation][0], val);
+    }
+    void changeVal(int val1, char pin1, int val2, char pin2)                             							//change value of two pins
+    {
+      changeVal(val1, pin1);
+      changeVal(val2, pin2);
+    }
+    void changeVal(int val1, char pin1, int val2, char pin2, int val3, char pin3)        							//change value of three pins
+    {
+      changeVal(val1, pin1);
+      changeVal(val2, pin2);
+      changeVal(val3, pin3);
+    }
+    void fade()
+    {
+      if (not(hasSameSign(pinData[0][2] - pinData[0][1], colorIncriment[0])) && not(hasSameSign(pinData[1][2] - pinData[1][1], colorIncriment[1])) && not(hasSameSign(pinData[2][2] - pinData[2][1], colorIncriment[2])))		//if all values are at or beyond their targets, set new targets
+      {
+        startFade();
+      }
+      for (int i = 0; i < 3; i++)																					//cycle through and fade pins one incriment if needed
+      {
+        if (hasSameSign(pinData[i][2] - pinData[i][1], colorIncriment[i]) || pinData[i][1] + colorIncriment[i] == pinData[i][2])
+        {
+          changeVal(pinData[i][1] + colorIncriment[i], pinNames[i]);
+        }
+      }
+      if (pinData[0][1] > 255 || pinData[0][1] < 0 || pinData[1][1] > 255 || pinData[1][1] < 0 || pinData[2][1] > 255 || pinData[2][1] < 0)
+      {
+        Serial.print(pinData[0][1]);
+        Serial.print(" ");
+        Serial.print(colorIncriment[0]);
+        Serial.print("\n");
+        Serial.print(pinData[1][1]);
+        Serial.print(" ");
+        Serial.print(colorIncriment[1]);
+        Serial.print("\n");
+        Serial.print(pinData[2][1]);
+        Serial.print(" ");
+        Serial.print(colorIncriment[2]);
+        delay(10000);
+      }
+    }
+    void flash(int r, int g, int b)
+    {
+      changeVal(r, 'r', g, 'g', b, 'b');
+      delay(10);
+      changeVal(pinData[0][1], 'r', pinData[1][1], 'g', pinData[2][1], 'b');
+    }
+    void shutDown()
+    {
+      changeVal(0, 'r', 0, 'g', 0, 'b');
+    }
+    void dim()
+    {
+      changeVal(15, 'r', 15, 'g', 15, 'b');
+    }
+
+  private:
+    bool hasSameSign(float a, float b)
+    {
+      if (a == b)
+      {
+        return false;                                         //just for a special case
+      }
+      if (a > -.5 && a < .5)
+      {
+        return false;                                         //special case also
+      }
+      if (a > 0 && b > 0)
+      {
+        return true;
+      }
+      else if (a < 0 && b < 0)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    void startFade()																							//calculate new targets and incriments
+    {
+      Serial.println("New fade requested");
+      for (int i = 0; i < 3; i++)
+      {
+        do
+        {
+          pinData[i][2] = 10 * random(0, 26);																	//set random ints for targets
+        }
+        while (pinData[i][2] == pinData[i][1]);
+        colorIncriment[i] = ( pinData[i][2] - pinData[i][1] );										//set incriment value
+        colorIncriment[i] /= 100;
+      }
+      Serial.println("New fade generated");
+      fading = true;
+    }
+};
 
 
 
-void setPins(int channelIn, int pin1, int pin2, int pin3)                    									//set pins on board to a certain channel in the array pins[][]
-{
-	int pinsIn[3] = { pin1, pin2, pin3 };
-	for (int i = 0; i < 3; i++)
-	{
-		pinMap[channelIn][i] = pinsIn[i];
-	}
-}
 
 void readSerial()																								//read serial message if available
 {
-	if (Serial.available() > 0)
-	{
-		serialInput = Serial.read();
-		switch (serialInput)
-		{
-			case "f":
-				fading = true;
-				newInstructions = true;
-				break;
-			case "d":
-				fading = false;
-				shutdown = false;
-				newInstructions = true;
-				break;
-			case "o":
-				fading = false;
-				shutdown = true;
-				newInstructions = true;
-				break;
-			default:
-				fading = true;
-				newInstructions = true;
-				break;
+  if (Serial.available() > 0)
+  {
+    char receivedChar = Serial.read();
+    Serial.print("New serial read with returned char: ");
+    Serial.print(receivedChar);
+    Serial.print("\n");
+    newInstructions = true;
+    switch (receivedChar)
+    {
+      case 'f':
+        fading = true;
+        Serial.println("Setting string to fade");
+        break;
+      case 'd':
+        fading = false;
+        shutDown = false;
+        break;
+      case 'o':
+        fading = false;
+        shutDown = true;
+        Serial.println("Setting string to off");
+        break;
+      default:
+        fading = true;
+        Serial.println("Setting string to fade");
+        break;
 
-		}
-	}
-}
-
-void runInstructions()
-{
-	if(fading)
-	{
-		String1.fade();
-	}
-	else if(shutdown && newInstructions)																		//only run if there are new instructions
-	{
-		String1.shutdown();
-	}
-	else if(not(shutdown) && newInstructions)																	//only run if there are new instructions
-	{
-		String1.dim();
-	}
+    }
+  }
 }
