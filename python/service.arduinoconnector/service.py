@@ -1,4 +1,5 @@
 import xbmc
+import xbmcaddon
 import time
 import serial
 
@@ -28,7 +29,7 @@ arduino_port = serial_connect.getSetting('serial_port')
 con = serial.Serial(arduino_port, 9600)
 
 def ledDim():
-    if player.isPlayingVideo(self):
+    if xbmc.Player().isPlayingVideo():
         con.write("d".encode('ASCII'))
 
 def ledFade():

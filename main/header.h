@@ -4,6 +4,7 @@ boolean shutDown =  true;                                             //mode set
 boolean runFlash = false;
 boolean newInstructions = false;                                      //lets functions know whether there are new instructions for pins
 int intensity = 100;
+int i = 0;
 
 
 
@@ -20,6 +21,12 @@ class LedString
       pinData[0][0] = r;
       pinData[1][0] = g;
       pinData[2][0] = b;
+      pinData[0][1] = 0;
+      pinData[1][1] = 0;
+      pinData[2][1] = 0;
+      digitalWrite(r, LOW);
+      digitalWrite(g, LOW);
+      digitalWrite(b, LOW);
     }
 
 
@@ -56,9 +63,11 @@ class LedString
 
     void fade()                                                   //fade to random colors
     {
+      i++;
       if ((not(hasSameSign(pinData[0][2] - pinData[0][1], colorIncriment[0])) && not(hasSameSign(pinData[1][2] - pinData[1][1], colorIncriment[1])) && not(hasSameSign(pinData[2][2] - pinData[2][1], colorIncriment[2]))) || forceUpdate)		//if all values are at or beyond their targets, set new targets
       {
         startFade();
+        i = 1;
         if (forceUpdate)
         {
           forceUpdate = false;
@@ -108,10 +117,25 @@ class LedString
         }
         delay(5);
       }
+      forceUpdate = true;
     }
 
   private:
-    bool hasSameSign(float a, float b)                        //Check to see if the values are in the target range. Not ideal but useful
+    boolean enoughDiff(float a, float b, float comparison)                          //check to see if the numbers are different enough
+    {
+      if(a < b - comparison)
+      {
+        return true;
+      }
+      else if(a > b + comparison)
+      {
+        return true;
+      }
+    return false;
+    }
+
+
+    boolean hasSameSign(float a, float b)                        //Check to see if the values are in the target range. Not ideal but useful
     {
       if (a == b)
       {
@@ -137,16 +161,23 @@ class LedString
 
     void startFade()																							//calculate new targets and incriments
     {
+      do
+      {
       for (int i = 0; i < 3; i++)
       {
         do
         {
-          pinData[i][2] = 10 * random(0, (intensity/4)+1);																	//set random targets
+          pinData[i][2] = 10 * random(0, (intensity / 4) + 1);																	//set random targets
+          if(pinData[i][2] < (intensity * .75) + 3)
+          {
+            pinData[i][2] = 0;
+          }
         }
         while (pinData[i][2] == pinData[i][1]);
         colorIncriment[i] = ( pinData[i][2] - pinData[i][1] );										//set incriment value
         colorIncriment[i] /= 100;
       }
+    } while(false);//not(enoughDiff(pinData[0][2], pinData[1][2], 20)) && not(enoughDiff(pinData[1][2], pinData[2][2], 20)));       //make sure the color is not white
       fading = true;
     }
 };
@@ -178,14 +209,14 @@ void readSerial()																								//read serial message if available
       case 'u':                                                 //force recalculation of fade
         forceUpdate = true;
         break;
-        case 'i':                                               //change color intensity
-          if(intensity == 10)
-          {
-            intensity = 110;
-          }
-          intensity -= 10;
-          Serial.println(intensity);
-          forceUpdate = true;
+      case 'i':                                               //change color intensity
+        if (intensity == 10)
+        {
+          intensity = 110;
+        }
+        intensity -= 10;
+        Serial.println(intensity);
+        forceUpdate = true;
       default:                                                  //if unknown character, start fade
         fading = true;
         break;
