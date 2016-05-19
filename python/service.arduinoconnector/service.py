@@ -37,7 +37,8 @@ def ledFade():
 
 def ledOff():
     con.write("o".encode('ASCII'))
- 
+
+ledFade(): 
 while True:
     if monitor.waitForAbort(1):
         ledOff()
