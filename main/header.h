@@ -1,3 +1,4 @@
+#include <arduino.h>
 #define totalChannelNum 1
 int pins[totalChannelNum][3];
 class LedString
@@ -11,6 +12,14 @@ public:
 		analogWrite(pins[channel][0], rVal = 15);
 		analogWrite(pins[channel][1], gVal = 15);
 		analogWrite(pins[channel][2], bVal = 15);
+    Serial.print("LED channel ");
+    Serial.print(channel);
+    Serial.print(" initialized on pins r=");
+    Serial.print(pins[channel][0]);
+    Serial.print(", g=");
+    Serial.print(pins[channel][1]);
+    Serial.print(", b=");
+    Serial.println(pins[channel][2]);
 	}
 	void changeVal(int val, char pin)                                                    //change value of one pin
 	{
@@ -38,20 +47,20 @@ public:
 		changeVal(val2, pin2);
 		changeVal(val3, pin3);
 	}
-	void fade(int val, char pin)
-	{
-		switch pin
-			case 'r':
+	//void fade(int val, char pin)
+	//{
+		//switch pin
+			//case 'r':
 				//startFade();
-	}
+	//}
 
 private:
 	void startFade()
 	{
-		int k = 100 * int(rand(20, 26));
+		int k = 100 * int(random(20, 26));
 		for (int i = 0; i < k; i++)
 		{
-			changeVal(int(rand(0, 256)), 'r', int(rand(0, 256)), 'g', int(rand(0, 256)), 'b')
+			changeVal(int(random(0, 256)), 'r', int(random(0, 256)), 'g', int(random(0, 256)), 'b');
 		}
 	}
 };
